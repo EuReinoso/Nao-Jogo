@@ -45,8 +45,12 @@ background2_top_2    = Obj(WINDOW_SIZE[0], 0, background2_size[0], background2_s
 
 
 grounds_list    = [ ground_bottom, ground_top, ground_bottom_2, ground_top_2]
-background_list = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2,
-                    background1_bottom, background1_bottom_2, background1_top, background1_top_2]
+
+background1_list = [ background1_bottom, background1_bottom_2, background1_top, background1_top_2]
+background2_list = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2]
+background_list  = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2,
+                     background1_bottom, background1_bottom_2, background1_top, background1_top_2]
+
 
 vel = 5
 fps = 60
@@ -81,14 +85,16 @@ def draw_background():
         bg.draw_img(window)
 
 def move_background():
-    for bg in background_list:
+    for bg in background1_list:
         bg.set_pos([bg.pos[0] - int(vel * 0.5), bg.pos[1]])
+    
+    for bg in background2_list:
+        bg.set_pos([bg.pos[0] - int(vel * 0.2), bg.pos[1]])
 
 def restart_background():
     for bg in background_list:
         if bg.pos[0] < -WINDOW_SIZE[0]:
             bg.set_pos([WINDOW_SIZE[0], bg.pos[1]])
-
 
 while loop:
 
