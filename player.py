@@ -8,7 +8,7 @@ class Player:
         self.img = img
         self.pos = pos
         self.y_momentum = 0
-        self.y_vel = 0.1
+        self.y_vel = 0.2
         self.rect = pygame.Rect(self.pos[0], self.pos[1], self.img.get_width(), self.img.get_height())
         self.right = False
         self.left = False

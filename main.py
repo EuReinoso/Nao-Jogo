@@ -1,5 +1,6 @@
 import pygame, sys
 from player import Player
+from obj import Obj
 
 pygame.init()
 
@@ -8,61 +9,87 @@ WINDOW_SIZE = (1280, 720)
 window = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption('Não Jogo')
 
-player_img = pygame.image.load("assets/player.png")
-player = Player(player_img, [WINDOW_SIZE[0] * 0.3, WINDOW_SIZE[1]/2])
+#Load Images
+player_img  = pygame.image.load('assets/player.png')
+ground_img  = pygame.image.load('assets/ground.png')
+background1_img = pygame.image.load('assets/background1.png').convert()
+background2_img = pygame.image.load('assets/background2.png').convert()
 
-ground_down = pygame.image.load('assets/ground.png')
-ground_down = pygame.transform.scale(ground_down, (WINDOW_SIZE[0], int(WINDOW_SIZE[1] * 0.16)))
-ground_down_pos = [0, WINDOW_SIZE[1] * 0.84]
-ground_down_rect = pygame.Rect(ground_down_pos[0], ground_down_pos[1], ground_down.get_width(), ground_down.get_height())
+background1_img.set_colorkey((255, 255, 255))
+background2_img.set_colorkey((255, 255, 255))
 
-ground_up = ground_down.copy()
-ground_up = pygame.transform.flip(ground_up, False, True)
-ground_up_pos = [0, 0]
-ground_up_rect = pygame.Rect(ground_up_pos[0], ground_up_pos[1], ground_up.get_width(), ground_up.get_height())
+ground_img_top = pygame.transform.flip(ground_img, False, True)
+background1_img_top = pygame.transform.flip(background1_img, False, True)
+background2_img_top = pygame.transform.flip(background2_img, False, True)
 
-ground2_down = ground_down.copy()
-ground2_up = ground_up.copy()
+player_init_pos = [WINDOW_SIZE[0] * 0.3, WINDOW_SIZE[1]/2]
+player          = Player(player_img, player_init_pos)
 
-grounds_rect_list = [ground_up_rect, ground_down_rect]
+ground_size     = [WINDOW_SIZE[0] + 10, int(WINDOW_SIZE[1] * 0.2)]
+ground_bottom   = Obj(0, WINDOW_SIZE[1] - ground_size[1], ground_size[0], ground_size[1], img= ground_img)
+ground_bottom_2 = Obj(WINDOW_SIZE[0], WINDOW_SIZE[1] - ground_size[1], ground_size[0], ground_size[1], img= ground_img)
+ground_top      = Obj(0, 0, ground_size[0], ground_size[1], img= ground_img_top)
+ground_top_2    = Obj(WINDOW_SIZE[0], 0, ground_size[0], ground_size[1], img= ground_img_top)
 
-background1_down = pygame.image.load('assets/background1.png').convert()
-background1_down.set_colorkey((255, 255, 255))
-background1_down = pygame.transform.scale(background1_down, (WINDOW_SIZE[0], int(WINDOW_SIZE[1] * 0.8)))
-background1_up = background1_down.copy()
-background1_up = pygame.transform.flip(background1_up, False, True)
-background1_pos = [0, 0]
+background1_size     = [WINDOW_SIZE[0] + 10, int(WINDOW_SIZE[1] * 0.8)]
+background1_bottom   = Obj(0, WINDOW_SIZE[1] - background1_size[1], background1_size[0], background1_size[1], img= background1_img)
+background1_bottom_2 = Obj(WINDOW_SIZE[0], WINDOW_SIZE[1] - background1_size[1], background1_size[0], background1_size[1], img= background1_img)
+background1_top      = Obj(0, 0, background1_size[0], background1_size[1], img= background1_img_top)
+background1_top_2    = Obj(WINDOW_SIZE[0], 0, background1_size[0], background1_size[1], img= background1_img_top)
 
-background1_2_down = background1_down.copy()
-background1_2_up = background1_up.copy()
+background2_size     = [WINDOW_SIZE[0] + 10, int(WINDOW_SIZE[1] * 0.9)]
+background2_bottom   = Obj(0, WINDOW_SIZE[1] - background2_size[1], background2_size[0], background2_size[1], img= background2_img)
+background2_bottom_2 = Obj(WINDOW_SIZE[0], WINDOW_SIZE[1] - background2_size[1], background1_size[0], background1_size[1], img= background2_img)
+background2_top      = Obj(0, 0, background2_size[0], background2_size[1], img= background2_img_top)
+background2_top_2    = Obj(WINDOW_SIZE[0], 0, background2_size[0], background2_size[1], img= background2_img_top)
 
-background2_down = pygame.image.load('assets/backgound2.png').convert()
-background2_down.set_colorkey((255, 255, 255))
-background2_down = pygame.transform.scale(background2_down, (WINDOW_SIZE[0], int(WINDOW_SIZE[1] * 0.8)))
-background2_up = background2_down.copy()
-background2_up = pygame.transform.flip(background2_up, False, True)
-background2_pos = [0, 0]
 
-background2_2_down = background2_down.copy()
-background2_2_up = background2_up.copy()
+grounds_list    = [ ground_bottom, ground_top, ground_bottom_2, ground_top_2]
+background_list = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2,
+                    background1_bottom, background1_bottom_2, background1_top, background1_top_2]
 
-vel = 2
+vel = 5
+fps = 60
+time = pygame.time.Clock()
+loop = True
 
 def grounds_update():
-    ground_down_rect.x = ground_down_pos[0]
-    ground_down_rect.y = ground_down_pos[1]
+    draw_grounds()
+    move_grounds()
+    restart_ground()
 
-    ground_up_rect.x = ground_up_pos[0]
-    ground_up_rect.y = ground_up_pos[1]
+def draw_grounds():
+    for ground in grounds_list:
+        ground.draw_img(window)
 
-def game_move():
-    ground_down_pos[0] -= vel
-    ground_up_pos[0] -= vel
+def move_grounds():
+    for ground in grounds_list:
+        ground.set_pos([ground.pos[0] - int(vel), ground.pos[1]])
 
-    background1_pos[0] -= vel  * 0.5
-    background2_pos[0] -= vel * 0.2
+def restart_ground():
+    for ground in grounds_list:
+        if ground.pos[0] < - WINDOW_SIZE[0]:
+            ground.set_pos([WINDOW_SIZE[0], ground.pos[1]])
 
-loop = True
+def background_update():
+    draw_background()
+    move_background()
+    restart_background()
+
+def draw_background():
+    for bg in background_list:
+        bg.draw_img(window)
+
+def move_background():
+    for bg in background_list:
+        bg.set_pos([bg.pos[0] - int(vel * 0.5), bg.pos[1]])
+
+def restart_background():
+    for bg in background_list:
+        if bg.pos[0] < -WINDOW_SIZE[0]:
+            bg.set_pos([WINDOW_SIZE[0], bg.pos[1]])
+
+
 while loop:
 
     window.fill((47, 58, 100))
@@ -75,29 +102,15 @@ while loop:
             player.control(event)
 
     #background
-    window.blit(background2_down, (background2_pos[0], WINDOW_SIZE[1] - background2_up.get_height()))
-    window.blit(background2_up, background2_pos)
-    window.blit(background1_down, (background1_pos[0], WINDOW_SIZE[1] - background1_up.get_height()))
-    window.blit(background1_up, background1_pos)
-
-    window.blit(background2_2_down, (background2_pos[0] + WINDOW_SIZE[0] -1, WINDOW_SIZE[1] - background2_up.get_height()))
-    window.blit(background2_2_up, (background2_pos[0] + WINDOW_SIZE[0] -1, background2_pos[1]))
-    window.blit(background1_2_down, (background1_pos[0] + WINDOW_SIZE[0] -1, WINDOW_SIZE[1] - background1_up.get_height()))
-    window.blit(background1_2_up, (background1_pos[0] + WINDOW_SIZE[0] -1, background1_pos[1]))
-
+    background_update()
     #ground
-    window.blit(ground_down, ground_down_pos)
-    window.blit(ground_up, ground_up_pos)
-    window.blit(ground2_down, (ground_down_pos[0] + WINDOW_SIZE[0] - 1, ground_down_pos[1]))
-    window.blit(ground2_up, (ground_up_pos[0] + WINDOW_SIZE[0] -1, ground_up_pos[1]))
+    grounds_update()
 
     #player
     player.update()
     player.draw(window)
-    player.ground_collide(ground_down_rect, ground_up_rect)
 
     #move
-    grounds_update()
-    game_move()
     
     pygame.display.update()
+    time.tick(fps)
