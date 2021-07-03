@@ -33,17 +33,37 @@ class Player(Obj):
 
         self.pos[1] += self.y_momentum
 
-    def collide(self, rects):
+    def collide_ground(self, rects):
         hit_list = self._collision_test(rects)
 
-        for rect in hit_list:
+        for obj in hit_list:
             if self.y_momentum > 0:
-                self.pos[1] = rect.top - self.rect.height + 1
+                self.pos[1] = obj.top - self.rect.height
                 self.y_momentum = 0
             
             if self.y_momentum < 0:
-                self.pos[1] = rect.bottom
+                self.pos[1] = obj.bottom
                 self.y_momentum = 0
+
+    def collide_block(self, rects):
+        hit_list = self._collision_test(rects)
+
+        for obj in hit_list:
+            if self.last_rect.bottom > obj.top and self.last_rect.top < obj.bottom:
+                    return True
+
+            else:
+                if self.y_momentum > 0:
+                    self.pos[1] = obj.top - self.rect.height
+                    self.y_momentum = 0
+                    return False
+
+                if self.y_momentum < 0:
+                    self.pos[1] = obj.bottom
+                    self.y_momentum = 0
+                    return False
+                
+                
 
     def _collision_test(self, rects):
         hit_list = []
@@ -59,4 +79,14 @@ class Player(Obj):
 
     def flip_anim(self):
         self.img = pygame.transform.flip(self.img, False, True)
+
+    def get_pos(self):
+        return [self.pos[0], self.pos[1]]
+
+    def set_last_pos(self, pos):
+        self.last_pos = pos
+    
+    @property
+    def last_rect(self):
+        return pygame.Rect(self.last_pos[0], self.last_pos[1], self.width, self.height)
             

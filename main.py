@@ -27,8 +27,9 @@ ground_img_top = pygame.transform.flip(ground_img, False, True)
 background1_img_top = pygame.transform.flip(background1_img, False, True)
 background2_img_top = pygame.transform.flip(background2_img, False, True)
 
-player_init_pos = [WINDOW_SIZE[0] * 0.3, WINDOW_SIZE[1]/2]
+player_init_pos = [WINDOW_SIZE[0] * 0.5, WINDOW_SIZE[1]/2]
 player          = Player(player_init_pos[0], player_init_pos[1], int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.05),img= player_img)
+player_positions = [[], []]
 
 ground_size     = [WINDOW_SIZE[0] + 20, int(WINDOW_SIZE[1] * 0.2)]
 ground_bottom   = Obj(0, WINDOW_SIZE[1] - ground_size[1], ground_size[0], ground_size[1], img= ground_img)
@@ -182,7 +183,14 @@ while loop:
     #player
     player.draw_img(window)
     player.update()
-    player.collide(get_rects(grounds_list)) 
+    player.collide_ground(get_rects(grounds_list))
+    if player.collide_block(get_rects(block_list)):
+        player.pos[0] -= vel
+
+    if player.get_pos() != player_positions[0]:
+        player_positions[1] = player_positions[0]
+        player_positions[0] = player.get_pos()
+        player.set_last_pos(player_positions[1])
 
     pygame.display.update()
     clock.tick(fps)

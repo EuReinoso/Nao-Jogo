@@ -8,7 +8,6 @@ class Obj:
         self.width = width
         self.height = height
         self.img = img
-        self.rect = pygame.Rect(x, y, width, height)
         
         if self.img != None:
             self.set_scale(width, height)
@@ -24,10 +23,13 @@ class Obj:
 
     def set_scale(self, width, height):
         self.img = pygame.transform.scale(self.img, [width, height])
-        self.rect = pygame.Rect(self.pos[0], self.pos[1], width, height)
         self.width = width
         self.height = height
 
     def set_pos(self, new_pos):
         self.pos = new_pos
-        self.rect = pygame.Rect(new_pos[0], new_pos[1], self.width, self.height)
+    
+    @property
+    def rect(self):
+        return pygame.Rect(self.pos[0], self.pos[1], self.width, self.height)
+        
