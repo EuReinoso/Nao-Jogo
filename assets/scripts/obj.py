@@ -28,6 +28,9 @@ class Obj:
 
     def set_pos(self, new_pos):
         self.pos = new_pos
+
+    def set_colorkey(self, colorkey= (255, 255, 255)):
+        self.img.set_colorkey(colorkey)
     
     @property
     def rect(self):

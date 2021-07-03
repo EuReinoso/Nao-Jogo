@@ -13,5 +13,4 @@ class Villain(Obj):
 
     def move(self, vel):
         self.pos[0] -= vel + self.vel
-
-    
+        

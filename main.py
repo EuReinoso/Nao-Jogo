@@ -4,9 +4,6 @@ from assets.scripts.player import Player
 from assets.scripts.obj import Obj
 from assets.scripts.villain import Villain
 
-import numpy as np
-import time
-
 pygame.init()
 
 WINDOW_SIZE = (1280, 720)
@@ -21,9 +18,11 @@ background1_img = pygame.image.load('assets/images/background1.png').convert()
 background2_img = pygame.image.load('assets/images/background2.png').convert()
 block_img = pygame.image.load('assets/images/block.png')
 villain_img = pygame.image.load('assets/images/villain.png')
+arrow_img = pygame.image.load('assets/images/arrow.png')
 
 background1_img.set_colorkey((255, 255, 255))
 background2_img.set_colorkey((255, 255, 255))
+arrow_img.set_colorkey((255, 255, 255))
 
 ground_img_top = pygame.transform.flip(ground_img, False, True)
 background1_img_top = pygame.transform.flip(background1_img, False, True)
@@ -72,8 +71,16 @@ villain_ticks = 0
 villain_spawn_range = [40, 120]
 villain_tick_spawn = randint(villain_spawn_range[0], villain_spawn_range[1])
 
+arrow_size = [int(WINDOW_SIZE[0] * 0.04), int(WINDOW_SIZE[0] * 0.02)]
+arrow_list = []
+arrow_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - arrow_size[1]]
+arrow_ticks = 0
+arrow_spawn_range = [120, 360]
+arrow_tick_spawn = randint(arrow_spawn_range[0], arrow_spawn_range[1])
+
 scroll = 0
 vel = 6
+vel_increase = 0.002
 fps = 60
 clock = pygame.time.Clock()
 loop = True
@@ -88,7 +95,8 @@ def draw_grounds():
         ground.draw_img(window)
 
 def move_grounds():
-     [ground.set_pos([int(ground.pos[0] - vel), ground.pos[1]]) for ground in grounds_list]
+    for ground in grounds_list:
+        ground.pos[0] -= int(vel)
          
 
 def restart_ground():
@@ -107,9 +115,9 @@ def draw_background():
 
 def move_background():
     for bg in background1_list:
-        bg.set_pos([bg.pos[0] - int(vel * 0.5), bg.pos[1]])
+        bg.pos[0] -= int(vel * 0.5)
     for bg in background2_list:
-        bg.set_pos([bg.pos[0] - int(vel * 0.2), bg.pos[1]])
+        bg.pos[0] -= int(vel * 0.2)
 
 def restart_background():
     for bg in background_list:
@@ -143,7 +151,7 @@ def draw_blocks():
 
 def move_blocks():
     for block in block_list:
-        block.set_pos([block.pos[0] - vel, block.pos[1]])
+        block.pos[0] -= int(vel)
 
 def update_blocks():
     draw_blocks()
@@ -171,29 +179,40 @@ def outscreen_villains():
         if villain.pos[0] < - villain_size[0]:
             villain_list.remove(villain)
 
-# def test_vel(num):
-#     start_time = time.time()
+def spawn_arrows():
+    pos = [WINDOW_SIZE[0], randint(arrow_spawn_pos_range[0], arrow_spawn_pos_range[1])]
 
-#     for i in range(num):
-#         
+    arrow = Obj(pos[0], pos[1], arrow_size[0], arrow_size[1], img= arrow_img)
+    arrow_list.append(arrow)
 
-#     print("A: --- %s ms ---" % ((time.time() - start_time)* 1000))
+def draw_arrows():
+    for arrow in arrow_list:
+        arrow.draw_img(window)
 
-#     start_time = time.time()
-#     for i in range(num):
-#         
-#     print("B: --- %s ms ---" % ((time.time() - start_time)* 1000))
+def move_arrows():
+    for arrow in arrow_list:
+        arrow.pos[0] -= int(vel)
 
-# test_vel(10000)
-# sys.exit()
+def update_arrows():
+    move_arrows()
+    draw_arrows()
+    collide_arrow()
+
+def collide_arrow():
+    for arrow in arrow_list:
+        if player.rect.colliderect(arrow.rect):
+            player.pos[0] += int(vel) * 15
+            arrow_list.remove(arrow)
 
 while loop:
 
     window.fill((47, 58, 100))
 
+    vel += vel_increase
     scroll += (player.pos[1] + (player.height/2) - (WINDOW_SIZE[1]/2) - scroll)/15
     block_ticks += 1
-    villain_ticks += 1 
+    villain_ticks += 1
+    arrow_ticks += 1 
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -235,6 +254,14 @@ while loop:
         villain_tick_spawn = randint(villain_spawn_range[0], villain_spawn_range[1])
     if len(villain_list) > 0:
         update_villains()
+
+    #arrows
+    if arrow_ticks > arrow_tick_spawn:
+        spawn_arrows()
+        arrow_ticks = 0
+        arrow_tick_spawn = randint(arrow_spawn_range[0], arrow_spawn_range[1])
+    if len(arrow_list) > 0:
+        update_arrows()
 
     pygame.display.update()
     clock.tick(fps)
