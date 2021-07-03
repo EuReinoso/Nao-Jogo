@@ -2,6 +2,7 @@ import pygame, sys
 from random import randint,random
 from assets.scripts.player import Player
 from assets.scripts.obj import Obj
+from assets.scripts.villain import Villain
 
 import numpy as np
 import time
@@ -19,6 +20,7 @@ ground_img  = pygame.image.load('assets/images/ground.png')
 background1_img = pygame.image.load('assets/images/background1.png').convert()
 background2_img = pygame.image.load('assets/images/background2.png').convert()
 block_img = pygame.image.load('assets/images/block.png')
+villain_img = pygame.image.load('assets/images/villain.png')
 
 background1_img.set_colorkey((255, 255, 255))
 background2_img.set_colorkey((255, 255, 255))
@@ -30,6 +32,7 @@ background2_img_top = pygame.transform.flip(background2_img, False, True)
 player_init_pos = [WINDOW_SIZE[0] * 0.5, WINDOW_SIZE[1]/2]
 player          = Player(player_init_pos[0], player_init_pos[1], int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.05),img= player_img)
 player_positions = [[], []]
+
 
 ground_size     = [WINDOW_SIZE[0] + 20, int(WINDOW_SIZE[1] * 0.2)]
 ground_bottom   = Obj(0, WINDOW_SIZE[1] - ground_size[1], ground_size[0], ground_size[1], img= ground_img)
@@ -49,7 +52,6 @@ background2_bottom_2 = Obj(WINDOW_SIZE[0], WINDOW_SIZE[1] - background2_size[1],
 background2_top      = Obj(0, 0, background2_size[0], background2_size[1], img= background2_img_top)
 background2_top_2    = Obj(WINDOW_SIZE[0], 0, background2_size[0], background2_size[1], img= background2_img_top)
 
-block_size_range = [int(WINDOW_SIZE[1] * 0.1), int(WINDOW_SIZE[0] * 0.1)]
 
 grounds_list     = [ ground_bottom, ground_top, ground_bottom_2, ground_top_2]
 background1_list = [ background1_bottom, background1_bottom_2, background1_top, background1_top_2]
@@ -57,10 +59,18 @@ background2_list = [ background2_bottom, background2_bottom_2, background2_top, 
 background_list  = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2,
                      background1_bottom, background1_bottom_2, background1_top, background1_top_2]
 block_list = []
+block_size_range = [int(WINDOW_SIZE[1] * 0.1), int(WINDOW_SIZE[0] * 0.1)]
 block_ticks = 0
 block_spawn_range = [20, 60]
 block_spawn_x = ground_bottom.pos[0] + WINDOW_SIZE[0]
 block_tick_spaw = randint(block_spawn_range[0], block_spawn_range[1])
+
+villain_size = [int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.05)]
+villain_list = []
+villain_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - villain_size[1]]
+villain_ticks = 0
+villain_spawn_range = [40, 120]
+villain_tick_spawn = randint(villain_spawn_range[0], villain_spawn_range[1])
 
 scroll = 0
 vel = 6
@@ -135,6 +145,32 @@ def move_blocks():
     for block in block_list:
         block.set_pos([block.pos[0] - vel, block.pos[1]])
 
+def update_blocks():
+    draw_blocks()
+    move_blocks()
+
+def spawn_villains():
+    pos = [WINDOW_SIZE[0], randint(villain_spawn_pos_range[0], villain_spawn_pos_range[1])]
+
+    villain = Villain(pos[0], pos[1], villain_size[0], villain_size[1], img = villain_img)
+    villain_list.append(villain)
+
+def draw_villains():
+    for villain in villain_list:
+        villain.draw_img(window)
+
+def update_villains():
+    for villain in villain_list:
+        villain.move(int(vel * 0.4))
+
+    draw_villains()
+    outscreen_villains()
+
+def outscreen_villains():
+    for villain in villain_list:
+        if villain.pos[0] < - villain_size[0]:
+            villain_list.remove(villain)
+
 # def test_vel(num):
 #     start_time = time.time()
 
@@ -157,6 +193,7 @@ while loop:
 
     scroll += (player.pos[1] + (player.height/2) - (WINDOW_SIZE[1]/2) - scroll)/15
     block_ticks += 1
+    villain_ticks += 1 
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -177,20 +214,27 @@ while loop:
         block_ticks = 0
         block_tick_spaw = randint(block_spawn_range[0], block_spawn_range[1])
     if len(block_list) > 0:
-        draw_blocks()
-        move_blocks()
+        update_blocks()
 
     #player
     player.draw_img(window)
     player.update()
     player.collide_ground(get_rects(grounds_list))
-    if player.collide_block(get_rects(block_list)):
+    if player.collide_block(get_rects(block_list) + get_rects(villain_list)):
         player.pos[0] -= vel
 
     if player.get_pos() != player_positions[0]:
         player_positions[1] = player_positions[0]
         player_positions[0] = player.get_pos()
         player.set_last_pos(player_positions[1])
+
+    #villain
+    if villain_ticks > villain_tick_spawn:
+        spawn_villains()
+        villain_ticks = 0
+        villain_tick_spawn = randint(villain_spawn_range[0], villain_spawn_range[1])
+    if len(villain_list) > 0:
+        update_villains()
 
     pygame.display.update()
     clock.tick(fps)

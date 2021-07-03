@@ -62,8 +62,6 @@ class Player(Obj):
                     self.pos[1] = obj.bottom
                     self.y_momentum = 0
                     return False
-                
-                
 
     def _collision_test(self, rects):
         hit_list = []
