@@ -1,5 +1,5 @@
 import pygame
-from obj import Obj
+from assets.scripts.obj import Obj
 
 pygame.init()
 

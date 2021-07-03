@@ -1,7 +1,7 @@
 import pygame, sys
 from random import randint,random
-from player import Player
-from obj import Obj
+from assets.scripts.player import Player
+from assets.scripts.obj import Obj
 
 import numpy as np
 import time
@@ -14,11 +14,11 @@ window = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption('Não Jogo')
 
 #Load Images
-player_img  = pygame.image.load('assets/player.png')
-ground_img  = pygame.image.load('assets/ground.png')
-background1_img = pygame.image.load('assets/background1.png').convert()
-background2_img = pygame.image.load('assets/background2.png').convert()
-block_img = pygame.image.load('assets/block.png')
+player_img  = pygame.image.load('assets/images/player.png')
+ground_img  = pygame.image.load('assets/images/ground.png')
+background1_img = pygame.image.load('assets/images/background1.png').convert()
+background2_img = pygame.image.load('assets/images/background2.png').convert()
+block_img = pygame.image.load('assets/images/block.png')
 
 background1_img.set_colorkey((255, 255, 255))
 background2_img.set_colorkey((255, 255, 255))
