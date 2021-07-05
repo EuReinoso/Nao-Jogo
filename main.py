@@ -5,6 +5,7 @@ from assets.scripts.obj import Obj
 from assets.scripts.villain import Villain
 
 pygame.init()
+pygame.font.init()
 
 WINDOW_SIZE = (1280, 720)
 
@@ -81,11 +82,18 @@ arrow_ticks = 0
 scroll = 0
 dash_force = 10
 vel = 7
-vel_increase = 0.003
+vel_increase = 0.004
 dash_time = 0
+score = 0
 fps = 60
 clock = pygame.time.Clock()
 loop = True
+
+def draw_text(text, pos, surface, fontsize= 30, font= 'calibri', color= (200, 200, 200)):
+    font = pygame.font.SysFont(font, fontsize)
+    render = font.render(text, False, color)
+    surface.blit(render, pos) 
+
 
 def grounds_update():
     draw_grounds()
@@ -227,6 +235,7 @@ while loop:
 
     window.fill((47, 58, 100))
 
+    score += vel
     vel += vel_increase
     scroll += (player.pos[1] + (player.height/2) - (WINDOW_SIZE[1]/2) - scroll)/15
     block_ticks += 1
@@ -286,6 +295,9 @@ while loop:
         arrow_tick_spawn = randint(arrow_spawn_range[0], arrow_spawn_range[1])
     if len(arrow_list) > 0:
         update_arrows()
+
+    draw_text('Score: ' + str(int(score)), (int(WINDOW_SIZE[0] * 0.02), int(WINDOW_SIZE[1] * 0.02)), window, fontsize= int(WINDOW_SIZE[1] * 0.08), color= (0, 0, 0))
+    draw_text('Vel: ' + str(int(vel)), (int(WINDOW_SIZE[0] * 0.02), int(WINDOW_SIZE[1] * 0.1)), window, fontsize= int(WINDOW_SIZE[1] * 0.08), color= (0, 0, 0))
 
     pygame.display.update()
     clock.tick(fps)
