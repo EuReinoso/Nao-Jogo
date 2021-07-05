@@ -6,11 +6,22 @@ from assets.scripts.villain import Villain
 
 pygame.init()
 pygame.font.init()
+pygame.mixer.init()
 
 WINDOW_SIZE = (1280, 720)
 
 window = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption('Não Jogo')
+
+#sounds load
+music = pygame.mixer.music.load('assets/sounds/Boss Music.mp3')
+pygame.mixer.music.set_volume(0.1)
+
+dash_sound = pygame.mixer.Sound('assets/sounds/dash.wav')
+dash_sound.set_volume(0.5)
+invert_sound = pygame.mixer.Sound('assets/sounds/invert.wav')
+invert_sound.set_volume(0.5)
+lose_sound = pygame.mixer.Sound('assets/sounds/lose.wav')
 
 #Load Images
 player_img  = pygame.image.load('assets/images/player.png')
@@ -233,6 +244,7 @@ def collide_arrow():
     for arrow in arrow_list:
         if player.rect.colliderect(arrow.rect):
             dash_time += 20
+            dash_sound.play()
             arrow_list.remove(arrow)
 
 def restart_game():
@@ -279,6 +291,9 @@ def menu():
 
     score = 0
 
+
+pygame.mixer.music.play(-1)
+
 menu()
 
 while loop:
@@ -298,6 +313,7 @@ while loop:
             sys.exit()
         if event.type == pygame.KEYDOWN:
             player.control(event)
+            invert_sound.play()
 
     #background
     background_update()
@@ -326,7 +342,7 @@ while loop:
         player.set_last_pos(player_positions[1])
 
     if player.pos[0] <= int(WINDOW_SIZE[0] * 0.05):
-        print(player_init_pos)
+        lose_sound.play()
         restart_game()
         menu()
 
