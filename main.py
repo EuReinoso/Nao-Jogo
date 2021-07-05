@@ -20,6 +20,7 @@ background2_img = pygame.image.load('assets/images/background2.png').convert()
 block_img = pygame.image.load('assets/images/block.png')
 villain_img = pygame.image.load('assets/images/villain.png')
 arrow_img = pygame.image.load('assets/images/arrow.png')
+wall_img = pygame.image.load('assets/images/wall.png')
 
 background1_img.set_colorkey((255, 255, 255))
 background2_img.set_colorkey((255, 255, 255))
@@ -72,6 +73,9 @@ arrow_size = [int(WINDOW_SIZE[0] * 0.04), int(WINDOW_SIZE[0] * 0.02)]
 arrow_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - arrow_size[1]]
 arrow_spawn_range = [120, 360]
 arrow_tick_spawn = randint(arrow_spawn_range[0], arrow_spawn_range[1])
+
+wall_size = [int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[1] - (2 * ground_size[1]))]
+wall = Obj(0, ground_size[1], wall_size[0], wall_size[1], img= wall_img)
 
 block_list = []
 villain_list = []
@@ -350,6 +354,8 @@ while loop:
     draw_text('Score: ' + str(int(score)), (int(WINDOW_SIZE[0] * 0.02), int(WINDOW_SIZE[1] * 0.02)), window, fontsize= int(WINDOW_SIZE[1] * 0.08), color= (0, 0, 0))
     draw_text('Vel: ' + str(int(vel)), (int(WINDOW_SIZE[0] * 0.02), int(WINDOW_SIZE[1] * 0.1)), window, fontsize= int(WINDOW_SIZE[1] * 0.08), color= (0, 0, 0))
 
+
+    wall.draw_img(window)
     pygame.display.update()
     clock.tick(fps)
 
