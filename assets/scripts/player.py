@@ -7,23 +7,15 @@ class Player(Obj):
     def __init__(self, x, y, width, height, img):
         super().__init__(x, y, width, height, img)
         self.y_momentum = 0
-        self.y_vel = 1
-        self.right = False
-        self.left = False
+        self.y_vel = 2
         self.ground_col = False
         self.invert = False
-        self.is_flip_anim = False
         self.is_flipped = False
-
-        self.min_height = self.height/2
-        self.max_height = self.height
 
     def update(self):
        
         self.gravity()
 
-        self.rect.x = self.pos[0]
-        self.rect.y = self.pos[1]
 
     def gravity(self):
         if not self.invert:

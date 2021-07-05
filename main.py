@@ -28,8 +28,8 @@ ground_img_top = pygame.transform.flip(ground_img, False, True)
 background1_img_top = pygame.transform.flip(background1_img, False, True)
 background2_img_top = pygame.transform.flip(background2_img, False, True)
 
-player_init_pos = [WINDOW_SIZE[0] * 0.5, WINDOW_SIZE[1]/2]
-player          = Player(player_init_pos[0], player_init_pos[1], int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.05),img= player_img)
+player_init_pos  = [WINDOW_SIZE[0] * 0.5, WINDOW_SIZE[1]/2]
+player           = Player(player_init_pos[0], player_init_pos[1], int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.05),img= player_img)
 player_positions = [[], []]
 
 
@@ -45,7 +45,7 @@ background1_bottom_2 = Obj(WINDOW_SIZE[0], int(WINDOW_SIZE[1] * 1.1) - backgroun
 background1_top      = Obj(0, 0 - int(WINDOW_SIZE[1] * 0.1), background1_size[0], background1_size[1], img= background1_img_top)
 background1_top_2    = Obj(WINDOW_SIZE[0], 0 - int(WINDOW_SIZE[1] * 0.1), background1_size[0], background1_size[1], img= background1_img_top)
 
-background2_size     = [WINDOW_SIZE[0] + 10, int(WINDOW_SIZE[1] * 0.7)]
+background2_size     = [WINDOW_SIZE[0] + 20, int(WINDOW_SIZE[1] * 0.7)]
 background2_bottom   = Obj(0, WINDOW_SIZE[1] - background2_size[1], background2_size[0], background2_size[1], img= background2_img)
 background2_bottom_2 = Obj(WINDOW_SIZE[0], WINDOW_SIZE[1] - background2_size[1], background2_size[0], background2_size[1], img= background2_img)
 background2_top      = Obj(0, 0, background2_size[0], background2_size[1], img= background2_img_top)
@@ -59,7 +59,6 @@ background_list  = [ background2_bottom, background2_bottom_2, background2_top, 
                      background1_bottom, background1_bottom_2, background1_top, background1_top_2]
 block_list = []
 block_size_range = [int(WINDOW_SIZE[1] * 0.1), int(WINDOW_SIZE[0] * 0.1)]
-block_ticks = 0
 block_spawn_range = [20, 60]
 block_spawn_x = ground_bottom.pos[0] + WINDOW_SIZE[0]
 block_tick_spaw = randint(block_spawn_range[0], block_spawn_range[1])
@@ -67,27 +66,30 @@ block_tick_spaw = randint(block_spawn_range[0], block_spawn_range[1])
 villain_size = [int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.05)]
 villain_list = []
 villain_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - villain_size[1]]
-villain_ticks = 0
 villain_spawn_range = [40, 120]
 villain_tick_spawn = randint(villain_spawn_range[0], villain_spawn_range[1])
 
 arrow_size = [int(WINDOW_SIZE[0] * 0.04), int(WINDOW_SIZE[0] * 0.02)]
 arrow_list = []
 arrow_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - arrow_size[1]]
-arrow_ticks = 0
 arrow_spawn_range = [120, 360]
 arrow_tick_spawn = randint(arrow_spawn_range[0], arrow_spawn_range[1])
 
+block_ticks = 0
+villain_ticks = 0
+arrow_ticks = 0
 scroll = 0
-vel = 6
-vel_increase = 0.002
+dash_force = 10
+vel = 7
+vel_increase = 0.003
+dash_time = 0
 fps = 60
 clock = pygame.time.Clock()
 loop = True
 
 def grounds_update():
     draw_grounds()
-    restart_ground()
+    respawn_ground()
     move_grounds()
 
 def draw_grounds():
@@ -99,14 +101,18 @@ def move_grounds():
         ground.pos[0] -= int(vel)
          
 
-def restart_ground():
-    for ground in grounds_list:
-        if ground.pos[0] < - WINDOW_SIZE[0]:
-            ground.set_pos([WINDOW_SIZE[0], ground.pos[1]])
+def respawn_ground():
+    if ground_top.pos[0] + ground_size[0] < 0:
+        ground_top.pos[0]    = ground_top_2.pos[0] + ground_size[0]
+        ground_bottom.pos[0] = ground_top_2.pos[0] + ground_size[0]
+    
+    if ground_top_2.pos[0] + ground_size[0] < 0:
+        ground_top_2.pos[0]    = ground_top.pos[0] + ground_size[0]
+        ground_bottom_2.pos[0] = ground_top.pos[0] + ground_size[0]
 
 def background_update():
     draw_background()
-    restart_background()
+    respawn_background()
     move_background()
 
 def draw_background():
@@ -119,10 +125,22 @@ def move_background():
     for bg in background2_list:
         bg.pos[0] -= int(vel * 0.2)
 
-def restart_background():
-    for bg in background_list:
-        if bg.pos[0] < -WINDOW_SIZE[0]:
-            bg.set_pos([WINDOW_SIZE[0], bg.pos[1]])
+def respawn_background():
+    if background1_top.pos[0] + background1_size[0] < 0:
+        background1_top.pos[0]    = background1_top_2.pos[0] + background1_size[0] 
+        background1_bottom.pos[0] = background1_top_2.pos[0] + background1_size[0]
+
+    if background1_top_2.pos[0] + background2_size[0] < 0:
+        background1_top_2.pos[0]    = background1_top.pos[0] + background1_size[0] 
+        background1_bottom_2.pos[0] = background1_top.pos[0] + background1_size[0]
+    
+    if background2_top.pos[0] + background2_size[0] < 0:
+        background2_top.pos[0]    = background2_top_2.pos[0] + background2_size[0] 
+        background2_bottom.pos[0] = background2_top_2.pos[0] + background2_size[0]
+
+    if background2_top_2.pos[0] + background2_size[0] < 0:
+        background2_top_2.pos[0]    = background2_top.pos[0] + background2_size[0] 
+        background2_bottom_2.pos[0] = background2_top.pos[0] + background2_size[0]
 
 def get_rects(objs):
     rects = []
@@ -199,9 +217,10 @@ def update_arrows():
     collide_arrow()
 
 def collide_arrow():
+    global dash_time
     for arrow in arrow_list:
         if player.rect.colliderect(arrow.rect):
-            player.pos[0] += int(vel) * 15
+            dash_time += 20
             arrow_list.remove(arrow)
 
 while loop:
@@ -247,6 +266,11 @@ while loop:
         player_positions[0] = player.get_pos()
         player.set_last_pos(player_positions[1])
 
+    if dash_time > 0:
+        dash_time -= 1
+        player.pos[0] += dash_force
+
+
     #villain
     if villain_ticks > villain_tick_spawn:
         spawn_villains()
@@ -265,3 +289,4 @@ while loop:
 
     pygame.display.update()
     clock.tick(fps)
+
