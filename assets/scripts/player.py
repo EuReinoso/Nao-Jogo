@@ -10,12 +10,9 @@ class Player(Obj):
         self.y_vel = 2
         self.ground_col = False
         self.invert = False
-        self.is_flipped = False
 
     def update(self):
-       
         self.gravity()
-
 
     def gravity(self):
         if not self.invert:
@@ -79,4 +76,4 @@ class Player(Obj):
     @property
     def last_rect(self):
         return pygame.Rect(self.last_pos[0], self.last_pos[1], self.width, self.height)
-            
+    

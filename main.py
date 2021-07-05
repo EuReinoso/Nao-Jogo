@@ -29,7 +29,7 @@ ground_img_top = pygame.transform.flip(ground_img, False, True)
 background1_img_top = pygame.transform.flip(background1_img, False, True)
 background2_img_top = pygame.transform.flip(background2_img, False, True)
 
-player_init_pos  = [WINDOW_SIZE[0] * 0.5, WINDOW_SIZE[1]/2]
+player_init_pos  = [int(WINDOW_SIZE[0] * 0.5), int(WINDOW_SIZE[1]/2)]
 player           = Player(player_init_pos[0], player_init_pos[1], int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.05),img= player_img)
 player_positions = [[], []]
 
@@ -58,33 +58,33 @@ background1_list = [ background1_bottom, background1_bottom_2, background1_top, 
 background2_list = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2]
 background_list  = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2,
                      background1_bottom, background1_bottom_2, background1_top, background1_top_2]
-block_list = []
 block_size_range = [int(WINDOW_SIZE[1] * 0.1), int(WINDOW_SIZE[0] * 0.1)]
 block_spawn_range = [20, 60]
 block_spawn_x = ground_bottom.pos[0] + WINDOW_SIZE[0]
 block_tick_spaw = randint(block_spawn_range[0], block_spawn_range[1])
 
 villain_size = [int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.05)]
-villain_list = []
 villain_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - villain_size[1]]
 villain_spawn_range = [40, 120]
 villain_tick_spawn = randint(villain_spawn_range[0], villain_spawn_range[1])
 
 arrow_size = [int(WINDOW_SIZE[0] * 0.04), int(WINDOW_SIZE[0] * 0.02)]
-arrow_list = []
 arrow_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - arrow_size[1]]
 arrow_spawn_range = [120, 360]
 arrow_tick_spawn = randint(arrow_spawn_range[0], arrow_spawn_range[1])
 
+block_list = []
+villain_list = []
+arrow_list = []
 block_ticks = 0
 villain_ticks = 0
 arrow_ticks = 0
 scroll = 0
-dash_force = 10
 vel = 7
-vel_increase = 0.004
-dash_time = 0
 score = 0
+dash_time = 0
+dash_force = 10
+vel_increase = 0.004
 fps = 60
 clock = pygame.time.Clock()
 loop = True
@@ -231,6 +231,52 @@ def collide_arrow():
             dash_time += 20
             arrow_list.remove(arrow)
 
+def restart_game():
+    global block_list, villain_list, arrow_list, block_ticks, villain_ticks, arrow_ticks, scroll, vel, score
+
+    block_list = []
+    villain_list = []
+    arrow_list = []
+    block_ticks = 0
+    villain_ticks = 0
+    arrow_ticks = 0
+    scroll = 0
+    vel = 7
+    player.pos = [player_init_pos[0], player_init_pos[1]]
+    if player.invert:
+        player.invert = False
+        player.flip_anim()
+    player.y_momentum = 0
+
+def menu():
+    global score
+
+    menu_loop = True
+    while menu_loop:
+
+        window.fill((47, 58, 100))
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    menu_loop = False
+
+        background_update()
+        grounds_update()
+        if score > 0:
+            draw_text('SCORE: ' + str(int(score)), [int(WINDOW_SIZE[0] * 0.35), int(WINDOW_SIZE[1] * 0.3)], window, fontsize= 70)
+
+        draw_text('SPACE TO START', [int(WINDOW_SIZE[0] * 0.35), int(WINDOW_SIZE[1] * 0.5)], window, fontsize= 70)
+        pygame.display.update()
+        clock.tick(fps)
+
+    score = 0
+
+menu()
+
 while loop:
 
     window.fill((47, 58, 100))
@@ -275,10 +321,15 @@ while loop:
         player_positions[0] = player.get_pos()
         player.set_last_pos(player_positions[1])
 
+    if player.pos[0] <= int(WINDOW_SIZE[0] * 0.05):
+        print(player_init_pos)
+        restart_game()
+        menu()
+
     if dash_time > 0:
         dash_time -= 1
         player.pos[0] += dash_force
-
+    
 
     #villain
     if villain_ticks > villain_tick_spawn:
