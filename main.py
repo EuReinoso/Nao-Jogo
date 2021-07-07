@@ -1,17 +1,21 @@
 import pygame, sys
+from pygame.locals import *
 from random import randint,random
 from assets.scripts.player import Player
 from assets.scripts.obj import Obj
 from assets.scripts.villain import Villain
 
+##
+from time import time
+
 pygame.init()
 pygame.font.init()
 pygame.mixer.init()
 
-WINDOW_SIZE = (1280, 720)
+WINDOW_SIZE = (894, 594)
 
-window = pygame.display.set_mode(WINDOW_SIZE)
-pygame.display.set_caption('Não Jogo')
+window = pygame.display.set_mode(WINDOW_SIZE, 0, 32)
+pygame.display.set_caption('Gravity Block')
 
 #sounds load
 music = pygame.mixer.music.load('assets/sounds/Boss Music.mp3')
@@ -65,11 +69,11 @@ background2_top      = Obj(0, 0, background2_size[0], background2_size[1], img= 
 background2_top_2    = Obj(WINDOW_SIZE[0], 0, background2_size[0], background2_size[1], img= background2_img_top)
 
 
-grounds_list     = [ ground_bottom, ground_top, ground_bottom_2, ground_top_2]
-background1_list = [ background1_bottom, background1_bottom_2, background1_top, background1_top_2]
-background2_list = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2]
-background_list  = [ background2_bottom, background2_bottom_2, background2_top, background2_top_2,
-                     background1_bottom, background1_bottom_2, background1_top, background1_top_2]
+grounds_list     = set([ ground_bottom, ground_top, ground_bottom_2, ground_top_2]) 
+background1_list = set([ background1_bottom, background1_bottom_2, background1_top, background1_top_2])
+background2_list = set([ background2_bottom, background2_bottom_2, background2_top, background2_top_2])
+background_list  = set([ background2_bottom, background2_bottom_2, background2_top, background2_top_2,
+                     background1_bottom, background1_bottom_2, background1_top, background1_top_2])
 block_size_range = [int(WINDOW_SIZE[1] * 0.1), int(WINDOW_SIZE[0] * 0.1)]
 block_spawn_range = [20, 60]
 block_spawn_x = ground_bottom.pos[0] + WINDOW_SIZE[0]
@@ -80,7 +84,7 @@ villain_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - vil
 villain_spawn_range = [40, 120]
 villain_tick_spawn = randint(villain_spawn_range[0], villain_spawn_range[1])
 
-arrow_size = [int(WINDOW_SIZE[0] * 0.04), int(WINDOW_SIZE[0] * 0.02)]
+arrow_size = [int(WINDOW_SIZE[0] * 0.05), int(WINDOW_SIZE[0] * 0.03)]
 arrow_spawn_pos_range = [ground_size[1], WINDOW_SIZE[1] - ground_size[1] - arrow_size[1]]
 arrow_spawn_range = [120, 360]
 arrow_tick_spawn = randint(arrow_spawn_range[0], arrow_spawn_range[1])
@@ -109,20 +113,24 @@ def draw_text(text, pos, surface, fontsize= 30, font= 'calibri', color= (200, 20
     render = font.render(text, False, color)
     surface.blit(render, pos) 
 
+def move_objs(objs, vel):
+    for obj in objs:
+        obj.pos[0] -= vel
+
+def draw_objs(objs, scroll_y= 0):
+    for obj in objs:
+        obj.draw_img(window, scroll_y)
+
+def get_rects(objs):
+    rects = []
+    for obj in objs:
+        rects.append(obj.rect)
+    return rects
 
 def grounds_update():
-    draw_grounds()
+    draw_objs(grounds_list)
+    move_objs(grounds_list, int(vel))
     respawn_ground()
-    move_grounds()
-
-def draw_grounds():
-    for ground in grounds_list:
-        ground.draw_img(window)
-
-def move_grounds():
-    for ground in grounds_list:
-        ground.pos[0] -= int(vel)
-         
 
 def respawn_ground():
     if ground_top.pos[0] + ground_size[0] < 0:
@@ -134,19 +142,10 @@ def respawn_ground():
         ground_bottom_2.pos[0] = ground_top.pos[0] + ground_size[0]
 
 def background_update():
-    draw_background()
+    draw_objs(background_list, scroll_y= scroll)
+    move_objs(background1_list, int(vel * 0.5))
+    move_objs(background2_list, int(vel * 0.2))
     respawn_background()
-    move_background()
-
-def draw_background():
-    for bg in background_list:
-        bg.draw_img(window, scroll= scroll)
-
-def move_background():
-    for bg in background1_list:
-        bg.pos[0] -= int(vel * 0.5)
-    for bg in background2_list:
-        bg.pos[0] -= int(vel * 0.2)
 
 def respawn_background():
     if background1_top.pos[0] + background1_size[0] < 0:
@@ -165,12 +164,6 @@ def respawn_background():
         background2_top_2.pos[0]    = background2_top.pos[0] + background2_size[0] 
         background2_bottom_2.pos[0] = background2_top.pos[0] + background2_size[0]
 
-def get_rects(objs):
-    rects = []
-    for obj in objs:
-        rects.append(obj.rect)
-    return rects
-
 def spawn_blocks():
     pos = 0
     block_size = randint(block_size_range[0], block_size_range[1]) 
@@ -186,17 +179,9 @@ def spawn_blocks():
     block = Obj(pos[0], pos[1], block_size, block_size, img= block_img)
     block_list.append(block)
 
-def draw_blocks():
-    for block in block_list:
-        block.draw_img(window)
-
-def move_blocks():
-    for block in block_list:
-        block.pos[0] -= int(vel)
-
 def update_blocks():
-    draw_blocks()
-    move_blocks()
+    draw_objs(block_list)
+    move_objs(block_list, int(vel))
 
 def spawn_villains():
     pos = [WINDOW_SIZE[0], randint(villain_spawn_pos_range[0], villain_spawn_pos_range[1])]
@@ -204,15 +189,11 @@ def spawn_villains():
     villain = Villain(pos[0], pos[1], villain_size[0], villain_size[1], img = villain_img)
     villain_list.append(villain)
 
-def draw_villains():
-    for villain in villain_list:
-        villain.draw_img(window)
-
 def update_villains():
     for villain in villain_list:
         villain.move(int(vel * 0.4))
 
-    draw_villains()
+    draw_objs(villain_list)
     outscreen_villains()
 
 def outscreen_villains():
@@ -226,17 +207,9 @@ def spawn_arrows():
     arrow = Obj(pos[0], pos[1], arrow_size[0], arrow_size[1], img= arrow_img)
     arrow_list.append(arrow)
 
-def draw_arrows():
-    for arrow in arrow_list:
-        arrow.draw_img(window)
-
-def move_arrows():
-    for arrow in arrow_list:
-        arrow.pos[0] -= int(vel)
-
 def update_arrows():
-    move_arrows()
-    draw_arrows()
+    move_objs(arrow_list, int(vel))
+    draw_objs(arrow_list)
     collide_arrow()
 
 def collide_arrow():
@@ -264,6 +237,8 @@ def restart_game():
         player.flip_anim()
     player.y_momentum = 0
 
+
+
 def menu():
     global score
 
@@ -283,9 +258,9 @@ def menu():
         background_update()
         grounds_update()
         if score > 0:
-            draw_text('SCORE: ' + str(int(score)), [int(WINDOW_SIZE[0] * 0.35), int(WINDOW_SIZE[1] * 0.3)], window, fontsize= 70)
+            draw_text('SCORE: ' + str(int(score)), [int(WINDOW_SIZE[0] * 0.34), int(WINDOW_SIZE[1] * 0.3)], window, fontsize= int(WINDOW_SIZE[1] * 0.1))
 
-        draw_text('SPACE TO START', [int(WINDOW_SIZE[0] * 0.35), int(WINDOW_SIZE[1] * 0.5)], window, fontsize= 70)
+        draw_text('SPACE TO START', [int(WINDOW_SIZE[0] * 0.34), int(WINDOW_SIZE[1] * 0.5)], window, fontsize= int(WINDOW_SIZE[1] * 0.1))
         pygame.display.update()
         clock.tick(fps)
 
@@ -295,9 +270,12 @@ def menu():
 pygame.mixer.music.play(-1)
 
 menu()
-
+##
+game_count = 0
+start = time()
 while loop:
-
+    ##
+    game_count += 1
     window.fill((47, 58, 100))
 
     score += vel
@@ -374,4 +352,4 @@ while loop:
     wall.draw_img(window)
     pygame.display.update()
     clock.tick(fps)
-
+    

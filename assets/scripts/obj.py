@@ -15,8 +15,8 @@ class Obj:
     def set_img(self, img):
         self.img = img
 
-    def draw_img(self, window, scroll= 0):
-        window.blit(self.img, [self.pos[0], self.pos[1] - scroll])
+    def draw_img(self, window, scroll_y= 0):
+        window.blit(self.img, [self.pos[0], self.pos[1] - scroll_y])
     
     def draw_rect(self, window, color):
         pygame.draw.rect(window, color, self.rect)
