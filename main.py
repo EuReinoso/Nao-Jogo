@@ -1,12 +1,9 @@
 import pygame, sys
 from pygame.locals import *
-from random import randint,random
+from random import randint, random
 from assets.scripts.player import Player
 from assets.scripts.obj import Obj
 from assets.scripts.villain import Villain
-
-##
-from time import time
 
 pygame.init()
 pygame.font.init()
@@ -69,11 +66,10 @@ background2_top      = Obj(0, 0, background2_size[0], background2_size[1], img= 
 background2_top_2    = Obj(WINDOW_SIZE[0], 0, background2_size[0], background2_size[1], img= background2_img_top)
 
 
-grounds_list     = set([ ground_bottom, ground_top, ground_bottom_2, ground_top_2]) 
+grounds_list     = set([ ground_bottom, ground_top, ground_bottom_2, ground_top_2])
 background1_list = set([ background1_bottom, background1_bottom_2, background1_top, background1_top_2])
 background2_list = set([ background2_bottom, background2_bottom_2, background2_top, background2_top_2])
-background_list  = set([ background2_bottom, background2_bottom_2, background2_top, background2_top_2,
-                     background1_bottom, background1_bottom_2, background1_top, background1_top_2])
+
 block_size_range = [int(WINDOW_SIZE[1] * 0.1), int(WINDOW_SIZE[0] * 0.1)]
 block_spawn_range = [20, 60]
 block_spawn_x = ground_bottom.pos[0] + WINDOW_SIZE[0]
@@ -142,7 +138,8 @@ def respawn_ground():
         ground_bottom_2.pos[0] = ground_top.pos[0] + ground_size[0]
 
 def background_update():
-    draw_objs(background_list, scroll_y= scroll)
+    draw_objs(background2_list, scroll_y= scroll)
+    draw_objs(background1_list, scroll_y= scroll)
     move_objs(background1_list, int(vel * 0.5))
     move_objs(background2_list, int(vel * 0.2))
     respawn_background()
@@ -237,8 +234,6 @@ def restart_game():
         player.flip_anim()
     player.y_momentum = 0
 
-
-
 def menu():
     global score
 
@@ -266,16 +261,11 @@ def menu():
 
     score = 0
 
-
 pygame.mixer.music.play(-1)
 
 menu()
-##
-game_count = 0
-start = time()
+
 while loop:
-    ##
-    game_count += 1
     window.fill((47, 58, 100))
 
     score += vel
@@ -313,22 +303,28 @@ while loop:
     player.collide_ground(get_rects(grounds_list))
     if player.collide_block(get_rects(block_list) + get_rects(villain_list)):
         player.pos[0] -= vel
+        if wall.pos[0] < 0:
+            wall.pos[0] += vel
 
     if player.get_pos() != player_positions[0]:
         player_positions[1] = player_positions[0]
         player_positions[0] = player.get_pos()
         player.set_last_pos(player_positions[1])
 
-    if player.pos[0] <= int(WINDOW_SIZE[0] * 0.05):
+    if player.rect.colliderect(wall.rect):
         lose_sound.play()
         restart_game()
         menu()
 
     if dash_time > 0:
         dash_time -= 1
+        move_objs(grounds_list, dash_force)
+        move_objs(block_list, dash_force)
+        move_objs(background1_list, dash_force)
+        move_objs(background2_list, dash_force)
         player.pos[0] += dash_force
+        wall.pos[0] -= dash_force
     
-
     #villain
     if villain_ticks > villain_tick_spawn:
         spawn_villains()
@@ -348,8 +344,9 @@ while loop:
     draw_text('Score: ' + str(int(score)), (int(WINDOW_SIZE[0] * 0.02), int(WINDOW_SIZE[1] * 0.02)), window, fontsize= int(WINDOW_SIZE[1] * 0.08), color= (0, 0, 0))
     draw_text('Vel: ' + str(int(vel)), (int(WINDOW_SIZE[0] * 0.02), int(WINDOW_SIZE[1] * 0.1)), window, fontsize= int(WINDOW_SIZE[1] * 0.08), color= (0, 0, 0))
 
-
+    #wall
     wall.draw_img(window)
+
     pygame.display.update()
     clock.tick(fps)
     
