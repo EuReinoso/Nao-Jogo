@@ -194,13 +194,12 @@ def update_villains():
     outscreen_villains()
 
 def outscreen_villains():
-    for villain in villain_list:
+    for i, villain in sorted(enumerate(villain_list), reverse= True) :
         if villain.pos[0] < - villain_size[0]:
-            villain_list.remove(villain)
+            villain_list.pop(i)
 
 def spawn_arrows():
     pos = [WINDOW_SIZE[0], randint(arrow_spawn_pos_range[0], arrow_spawn_pos_range[1])]
-
     arrow = Obj(pos[0], pos[1], arrow_size[0], arrow_size[1], img= arrow_img)
     arrow_list.append(arrow)
 
@@ -210,12 +209,23 @@ def update_arrows():
     collide_arrow()
 
 def collide_arrow():
-    global dash_time
-    for arrow in arrow_list:
+    for i, arrow in sorted(enumerate(arrow_list), reverse= True):
         if player.rect.colliderect(arrow.rect):
-            dash_time += 20
-            dash_sound.play()
-            arrow_list.remove(arrow)
+            player_dash()
+            arrow_list.pop(i)
+
+def player_dash():
+    global dash_time
+    dash_sound.play()
+    dash_time += 20
+
+def dash_anim():
+    move_objs(grounds_list, dash_force)
+    move_objs(block_list, dash_force) 
+    move_objs(background1_list, dash_force)
+    move_objs(background2_list, dash_force)
+    player.pos[0] += dash_force
+    wall.pos[0] -= dash_force
 
 def restart_game():
     global block_list, villain_list, arrow_list, block_ticks, villain_ticks, arrow_ticks, scroll, vel, score
@@ -318,12 +328,7 @@ while loop:
 
     if dash_time > 0:
         dash_time -= 1
-        move_objs(grounds_list, dash_force)
-        move_objs(block_list, dash_force)
-        move_objs(background1_list, dash_force)
-        move_objs(background2_list, dash_force)
-        player.pos[0] += dash_force
-        wall.pos[0] -= dash_force
+        dash_anim()
     
     #villain
     if villain_ticks > villain_tick_spawn:
